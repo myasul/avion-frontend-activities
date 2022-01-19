@@ -38,9 +38,13 @@ main {
 .board .top,
 .board .center,
 .board .bottom,
-.board .box { 
+.board .box {
     height: 100%;
     width: 100%;
     display: flex;
     justify-content: space-evenly;
+}
+
+.board .box:hover {
+    cursor: pointer;
 }
