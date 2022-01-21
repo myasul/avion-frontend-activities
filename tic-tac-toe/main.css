@@ -47,6 +47,11 @@ main {
     align-items: center;
 }
 
+.board .box[disabled=true]:hover {
+    cursor: not-allowed;
+}
+
+
 .board .box img {
     height: 80%;
     width: 80%;
