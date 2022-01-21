@@ -8,7 +8,9 @@ const PLAYERS = ['X', 'O']
 
 export const startGame = (firstPlayer = DEFAULT_FIRST_PLAYER) => {
     const game = {
-        board: EMPTY_BOARD,
+        board: cloneBoard(EMPTY_BOARD),
+        history: [cloneBoard(EMPTY_BOARD)],
+        currentHistoryIndex: 0,
         playerIndex: !!PLAYERS.indexOf(firstPlayer)
     }
 
@@ -16,7 +18,14 @@ export const startGame = (firstPlayer = DEFAULT_FIRST_PLAYER) => {
     document
         .querySelectorAll('.box')
         .forEach(box => box.addEventListener('click', (event) => handleBoxClick(event, game)))
+    document
+        .querySelector('.previous')
+        .addEventListener('click', (event) => handlePreviousClick(event, game))
+    document
+        .querySelector('.next')
+        .addEventListener('click', (event) => handleNextClick(event, game))
 }
+
 
 const handleBoxClick = (event, game) => {
     const box = event.target
@@ -28,22 +37,60 @@ const handleBoxClick = (event, game) => {
 
     game.board[row][col] = player
     game.playerIndex = !game.playerIndex
+    game.currentHistoryIndex += 1
+    game.history.push(cloneBoard(game.board))
 
     const winner = checkWinner(game.board)
+
+    console.log('GAME: ', game)
+
 
     if (winner) {
         return setTimeout(() => alert(`${winner} wins!`), 0)
     }
 }
 
+const handlePreviousClick = (event, game) => {
+    const { currentHistoryIndex } = game
+    const index = currentHistoryIndex === 0 ? 0 : currentHistoryIndex - 1
+    const board = game.history[index]
+
+    drawBoard(board)
+
+    game.currentHistoryIndex = index
+}
+
+const handleNextClick = (event, game) => {
+    const { currentHistoryIndex, history } = game
+    const historyMaxArrayLocation = history.length - 1
+
+    const index = currentHistoryIndex >= historyMaxArrayLocation ? historyMaxArrayLocation : currentHistoryIndex + 1
+    const board = game.history[index]
+
+    drawBoard(board)
+
+    game.currentHistoryIndex = index
+}
+
+const drawBoard = (board) => {
+    const rows = Array.from(document.querySelectorAll('div[class*="row"]'))
+    const boxes = rows.map(row => Array.from(row.querySelectorAll('div[class*="col"]')))
+
+    for (let row = 0;row < board.length;row++) {
+        for (let col = 0;col < board.length;col++) {
+            const box = boxes[row][col]
+            const boardValue = board[row][col]
+
+            box.innerText = boardValue
+        }
+    }
+}
+
 const makeMove = (player, board, box) => {
     if (!PLAYERS.includes(player)) throw new Error(`Invalid player: ${player}`)
 
-    const paragraph = document.createElement('p')
-    paragraph.textContent = player
-
     box.disabled = true
-    box.appendChild(paragraph)
+    box.textContent = player
 
     return getMoveLocation(box)
 }
@@ -90,3 +137,5 @@ const checkWinner = (board) => {
 
     return undefined
 }
+
+const cloneBoard = (board) => board.map(row => [...row])
