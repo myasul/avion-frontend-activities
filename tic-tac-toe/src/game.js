@@ -1,5 +1,9 @@
-import { EMPTY_BOARD, GAME_STATUS, PLAYER } from './constants.js'
+import { EMPTY_BOARD, GAME_STATUS, PLAYER, COLORS } from './constants.js'
 import { delayedAlert, cloneBoard, getRandomArbitrary, recreateElement } from './utils.js'
+
+/**
+ * MAIN
+ */
 
 export const startGame = () => {
     const game = {
@@ -14,10 +18,10 @@ export const startGame = () => {
         .forEach(box => box.addEventListener('click', (event) => handleBoxClick(event, game)))
     document
         .querySelector('.previous')
-        .addEventListener('click', (event) => handlePreviousClick(event, game))
+        .addEventListener('click', () => handlePreviousClick(game))
     document
         .querySelector('.next')
-        .addEventListener('click', (event) => handleNextClick(event, game))
+        .addEventListener('click', () => handleNextClick(game))
     document
         .querySelector('.new-game')
         .addEventListener('click', restartGame)
@@ -32,9 +36,13 @@ export const restartGame = () => {
     const historyControls = recreateElement(oldHistoryControls)
     historyControls.style.visibility = 'hidden'
 
-    drawBoard(cloneBoard(EMPTY_BOARD))
+    drawBoard(cloneBoard(EMPTY_BOARD), { enableBoxes: true })
     startGame()
 }
+
+/**
+ * HANDLERS
+ */
 
 const handleBoxClick = (event, game) => {
     const box = event.target
@@ -49,7 +57,7 @@ const handleBoxClick = (event, game) => {
     game.history.push(cloneBoard(game.board))
 
     status = checkGameStatus(game.board)
-    if (status !== GAME_STATUS.InProgress) return afterGame(status)
+    if (status !== GAME_STATUS.InProgress) return handleAfterGame(status)
 
     const [rowAI, colAI] = makeAIMove()
 
@@ -58,32 +66,65 @@ const handleBoxClick = (event, game) => {
     game.history.push(cloneBoard(game.board))
 
     status = checkGameStatus(game.board)
-    if (status !== GAME_STATUS.InProgress) return afterGame(status)
+    if (status !== GAME_STATUS.InProgress) return handleAfterGame(status)
 }
 
-const handlePreviousClick = (event, game) => {
+const handleAfterGame = (status) => {
+    delayedAlert(status)
+
+    const historyControls = document.querySelector('.history-controls')
+    historyControls.style.visibility = 'visible'
+
+    const nextButton = document.querySelector('.next')
+    nextButton.disabled = true
+
+    const boxes = Array.from(document.querySelectorAll('.box'))
+    boxes.forEach(box => { box.setAttribute('disabled', true) })
+
+    return
+}
+
+const handlePreviousClick = (game) => {
     const { currentHistoryIndex, history } = game
     const index = currentHistoryIndex === 0 ? 0 : currentHistoryIndex - 1
+    const historyMaxArrayLocation = history.length - 1
     const board = history[index]
+
+    const nextButton = document.querySelector('.next')
+    const previousButton = document.querySelector('.previous')
+
+    if (index === 0) previousButton.disabled = true
+    if (index < historyMaxArrayLocation) nextButton.disabled = false
 
     drawBoard(board)
 
     game.currentHistoryIndex = index
 }
 
-const handleNextClick = (event, game) => {
+const handleNextClick = (game) => {
     const { currentHistoryIndex, history } = game
     const historyMaxArrayLocation = history.length - 1
 
     const index = currentHistoryIndex >= historyMaxArrayLocation ? historyMaxArrayLocation : currentHistoryIndex + 1
     const board = game.history[index]
 
+    const nextButton = document.querySelector('.next')
+    const previousButton = document.querySelector('.previous')
+
+    if (index === historyMaxArrayLocation) nextButton.disabled = true
+    if (index > 0) previousButton.disabled = false
+
     drawBoard(board)
 
     game.currentHistoryIndex = index
 }
 
-const drawBoard = (board) => {
+/**
+ * GAME FUNCTIONS
+ */
+
+const drawBoard = (board, options = {}) => {
+    const { enableBoxes } = options
     const rows = Array.from(document.querySelectorAll('div[class*="row"]'))
     const boxes = rows.map(row => Array.from(row.querySelectorAll('div[class*="col"]')))
 
@@ -91,6 +132,8 @@ const drawBoard = (board) => {
         for (let col = 0;col < board.length;col++) {
             const box = boxes[row][col]
             const boardValue = board[row][col]
+
+            if (enableBoxes) box.setAttribute('disabled', false)
 
             if (box.firstChild) box.removeChild(box.firstChild)
             if (!boardValue) continue
@@ -203,16 +246,4 @@ const checkGameStatus = (board) => {
     if (flattenBoard.every(move => players.includes(move))) return GAME_STATUS.Draw
 
     return GAME_STATUS.InProgress
-}
-
-const afterGame = (status) => {
-    delayedAlert(status)
-
-    const historyControls = document.querySelector('.history-controls')
-    historyControls.style.visibility = 'visible'
-
-    const boxes = Array.from(document.querySelectorAll('.box'))
-    boxes.forEach(box => { box.setAttribute('disabled', true) })
-
-    return
 }

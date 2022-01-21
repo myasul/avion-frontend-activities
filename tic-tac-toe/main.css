@@ -47,14 +47,15 @@ main {
     align-items: center;
 }
 
-.board .box[disabled=true]:hover {
+.board .box[disabled='true']:hover {
     cursor: not-allowed;
 }
-
 
 .board .box img {
     height: 80%;
     width: 80%;
+    animation-duration: 0.3s;
+    animation-name: slidein;
 }
 
 .board .box:hover {
@@ -62,28 +63,61 @@ main {
 }
 
 .history-controls {
-    width: 300px;
-    height: 50px;
+    width: 350px;
+    height: 60px;
     padding-top: 50px;
     display: flex;
     justify-content: space-between;
     margin: 0 auto;
     visibility: hidden;
+    animation-duration: 0.3s;
+    animation-name: slidein;
 }
 
 .history-controls button {
     all: unset;
+    border: 2px solid #d8d8d8;
     cursor: pointer;
     height: 100%;
-    border-radius: 50px;
+    padding: 15px;
+    border-radius: 7px;
+    box-shadow: 3px 3px 1px white;
+    transition: 0.3s;
+    animation-duration: 0.3s;
+    animation-name: slidein;
+    background-color: black;
+}
+
+.history-controls button:active {
+    box-shadow: none;
+    transform: translateY(5px);
 }
 
 .history-controls svg {
     fill: white;
-    height: 100%;
+    height: 90%;
 }
 
 .history-controls button:disabled svg {
     fill: #d8d8d8;
     height: 100%;
+}
+
+.history-controls button:disabled {
+    background-color: grey;
+    cursor: not-allowed;
+}
+
+@keyframes slidein {
+    from {
+        max-height: 0;
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    to {
+        max-height: 100%;
+        transform: scale(1);
+        opacity: 1;
+    }
 }
