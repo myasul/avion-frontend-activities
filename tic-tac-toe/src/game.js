@@ -1,5 +1,5 @@
 import { EMPTY_BOARD, GAME_STATUS, PLAYER } from './constants.js'
-import { delayedAlert, cloneBoard, getRandomArbitrary } from './utils.js'
+import { delayedAlert, cloneBoard, getRandomArbitrary, recreateElement } from './utils.js'
 
 export const startGame = () => {
     const game = {
@@ -26,14 +26,11 @@ export const startGame = () => {
 export const restartGame = () => {
     // Remove current event listeners to avoid overlap
     const oldBoard = document.querySelector('.board')
+    recreateElement(oldBoard)
+
     const oldHistoryControls = document.querySelector('.history-controls')
-
-    const newBoard = oldBoard.cloneNode(true)
-    const newHistoryControls = oldHistoryControls.cloneNode(true)
-
-    const parent = oldBoard.parentNode
-    parent.replaceChild(newBoard, oldBoard)
-    parent.replaceChild(newHistoryControls, oldHistoryControls)
+    const historyControls = recreateElement(oldHistoryControls)
+    historyControls.style.visibility = 'hidden'
 
     drawBoard(cloneBoard(EMPTY_BOARD))
     startGame()
@@ -52,7 +49,7 @@ const handleBoxClick = (event, game) => {
     game.history.push(cloneBoard(game.board))
 
     status = checkGameStatus(game.board)
-    if (status !== GAME_STATUS.InProgress) return delayedAlert(status)
+    if (status !== GAME_STATUS.InProgress) return afterGame(status)
 
     const [rowAI, colAI] = makeAIMove()
 
@@ -61,13 +58,13 @@ const handleBoxClick = (event, game) => {
     game.history.push(cloneBoard(game.board))
 
     status = checkGameStatus(game.board)
-    if (status !== GAME_STATUS.InProgress) return delayedAlert(status)
+    if (status !== GAME_STATUS.InProgress) return afterGame(status)
 }
 
 const handlePreviousClick = (event, game) => {
-    const { currentHistoryIndex } = game
+    const { currentHistoryIndex, history } = game
     const index = currentHistoryIndex === 0 ? 0 : currentHistoryIndex - 1
-    const board = game.history[index]
+    const board = history[index]
 
     drawBoard(board)
 
@@ -116,16 +113,16 @@ const makeAIMove = (game) => {
     const [row, col] = move
 
     const box = document.querySelector(`div.row-${row + 1} div.col-${col + 1}`)
-    // Add delay to have that "thinking" effect
-    // setTimeout(() => { box.innerText = PLAYER.AI }, 400)
+    // Recreate element to remove click event
+    const newBox = recreateElement(box)
 
     const image = new Image()
-    image.src = './assets/O.svg'
-    image.alt = 'O'
+    image.src = `./assets/${PLAYER.AI}.svg`
+    image.alt = PLAYER.AI
 
     // Add delay to have that "thinking" effect
-    setTimeout(() => { box.appendChild(image) }, 400)
-    box.disabled = true
+    setTimeout(() => { newBox.appendChild(image) }, 200)
+    newBox.setAttribute('disabled', true)
 
     return move
 }
@@ -142,14 +139,18 @@ const isMoveValid = (move) => {
 }
 
 const makeHumanMove = (box) => {
+    // Recreate element to remove click event
+    const newBox = recreateElement(box)
+    newBox.setAttribute('disabled', true)
+
     const image = new Image()
-    image.src = './assets/X.svg'
-    image.alt = 'X'
+    image.src = `./assets/${PLAYER.Human}.svg`
+    image.alt = PLAYER.Human
 
-    box.appendChild(image)
-    box.disabled = true
+    newBox.appendChild(image)
+    newBox.setAttribute('disabled', true)
 
-    return getMoveLocation(box)
+    return getMoveLocation(newBox)
 }
 
 const getMoveLocation = (box) => {
@@ -202,4 +203,16 @@ const checkGameStatus = (board) => {
     if (flattenBoard.every(move => players.includes(move))) return GAME_STATUS.Draw
 
     return GAME_STATUS.InProgress
+}
+
+const afterGame = (status) => {
+    delayedAlert(status)
+
+    const historyControls = document.querySelector('.history-controls')
+    historyControls.style.visibility = 'visible'
+
+    const boxes = Array.from(document.querySelectorAll('.box'))
+    boxes.forEach(box => { box.setAttribute('disabled', true) })
+
+    return
 }

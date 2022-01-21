@@ -63,6 +63,7 @@ main {
     display: flex;
     justify-content: space-between;
     margin: 0 auto;
+    visibility: hidden;
 }
 
 .history-controls button {
