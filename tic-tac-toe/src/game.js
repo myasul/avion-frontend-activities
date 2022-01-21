@@ -24,8 +24,26 @@ export const startGame = (firstPlayer = DEFAULT_FIRST_PLAYER) => {
     document
         .querySelector('.next')
         .addEventListener('click', (event) => handleNextClick(event, game))
+    document
+        .querySelector('.new-game')
+        .addEventListener('click', restartGame)
 }
 
+export const restartGame = () => {
+    // Remove current event listeners to avoid overlap
+    const oldBoard = document.querySelector('.board')
+    const oldHistoryControls = document.querySelector('.history-controls')
+
+    const newBoard = oldBoard.cloneNode(true)
+    const newHistoryControls = oldHistoryControls.cloneNode(true)
+
+    const parent = oldBoard.parentNode
+    parent.replaceChild(newBoard, oldBoard)
+    parent.replaceChild(newHistoryControls, oldHistoryControls)
+
+    drawBoard(cloneBoard(EMPTY_BOARD))
+    startGame()
+}
 
 const handleBoxClick = (event, game) => {
     const box = event.target
