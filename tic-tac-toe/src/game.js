@@ -1,5 +1,5 @@
 import { EMPTY_BOARD, GAME_STATUS, PLAYER } from './constants.js'
-import { delayedAlert, cloneBoard, getRandomArbitrary, syncWait } from './utils.js'
+import { delayedAlert, cloneBoard, getRandomArbitrary } from './utils.js'
 
 export const startGame = () => {
     const game = {
@@ -54,9 +54,7 @@ const handleBoxClick = (event, game) => {
     status = checkGameStatus(game.board)
     if (status !== GAME_STATUS.InProgress) return delayedAlert(status)
 
-    // syncWait(1000)
-
-    const [rowAI, colAI] = makeAIMove(game)
+    const [rowAI, colAI] = makeAIMove()
 
     game.board[rowAI][colAI] = PLAYER.AI
     game.currentHistoryIndex += 1
@@ -111,7 +109,8 @@ const makeAIMove = (game) => {
     const [row, col] = move
 
     const box = document.querySelector(`div.row-${row + 1} div.col-${col + 1}`)
-    box.innerText = PLAYER.AI
+    // Add delay to have that "thinking" effect
+    setTimeout(() => { box.innerText = PLAYER.AI }, 400)
     box.disabled = true
 
     return move
