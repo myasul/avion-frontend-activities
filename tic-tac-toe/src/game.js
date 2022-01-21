@@ -5,6 +5,12 @@ const EMPTY_BOARD = [
 ]
 const DEFAULT_FIRST_PLAYER = 'X'
 const PLAYERS = ['X', 'O']
+const GAME_STATUS = {
+    XWin: 'X Wins',
+    OWin: 'O Wins',
+    Draw: 'Draw',
+    InProgress: 'In Progress'
+}
 
 export const startGame = (firstPlayer = DEFAULT_FIRST_PLAYER) => {
     const game = {
@@ -14,7 +20,7 @@ export const startGame = (firstPlayer = DEFAULT_FIRST_PLAYER) => {
         playerIndex: !!PLAYERS.indexOf(firstPlayer)
     }
 
-    // Add event listeners to all boxers
+    // Add event listeners
     document
         .querySelectorAll('.box')
         .forEach(box => box.addEventListener('click', (event) => handleBoxClick(event, game)))
@@ -58,14 +64,11 @@ const handleBoxClick = (event, game) => {
     game.currentHistoryIndex += 1
     game.history.push(cloneBoard(game.board))
 
-    const winner = checkWinner(game.board)
+    const status = checkGameStatus(game.board)
 
-    console.log('GAME: ', game)
+    if (status === GAME_STATUS.InProgress) return
 
-
-    if (winner) {
-        return setTimeout(() => alert(`${winner} wins!`), 0)
-    }
+    return setTimeout(() => alert(status), 0)
 }
 
 const handlePreviousClick = (event, game) => {
@@ -120,8 +123,10 @@ const getMoveLocation = (box) => {
     return [Number(rowIndex) - 1, Number(columnIndex) - 1]
 }
 
-const checkWinner = (board) => {
+const checkGameStatus = (board) => {
     const boardLength = board.length
+    const flattenBoard = []
+    let winner
 
     for (let row = 0;row < boardLength;row++) {
         const horizontalMatch = []
@@ -132,6 +137,7 @@ const checkWinner = (board) => {
         for (let col = 0;col < boardLength;col++) {
             horizontalMatch.push(board[row][col])
             verticalMatch.push(board[col][row])
+            flattenBoard.push(board[row][col])
         }
 
         for (let rev = boardLength - 1;rev >= 0;rev--) {
@@ -149,11 +155,16 @@ const checkWinner = (board) => {
         for (const match of matches) {
             const firstMove = match[0]
             const hasMatch = PLAYERS.includes(firstMove) && match.every(player => player === firstMove)
-            if (hasMatch) return firstMove
+            if (hasMatch) {
+                winner = firstMove
+            }
         }
     }
 
-    return undefined
+    if (winner) return winner === PLAYERS[0] ? GAME_STATUS.XWin : GAME_STATUS.OWin
+    if (flattenBoard.every(move => PLAYERS.includes(move))) return GAME_STATUS.Draw
+
+    return GAME_STATUS.InProgress
 }
 
 const cloneBoard = (board) => board.map(row => [...row])
