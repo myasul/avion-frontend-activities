@@ -17,7 +17,7 @@ export const startGame = (firstPlayer = DEFAULT_FIRST_PLAYER) => {
         board: cloneBoard(EMPTY_BOARD),
         history: [cloneBoard(EMPTY_BOARD)],
         currentHistoryIndex: 0,
-        playerIndex: !!PLAYERS.indexOf(firstPlayer)
+        currentPlayerIndex: !!PLAYERS.indexOf(firstPlayer)
     }
 
     // Add event listeners
@@ -56,11 +56,11 @@ const handleBoxClick = (event, game) => {
 
     if (box.disabled) return
 
-    const player = PLAYERS[Number(game.playerIndex)]
+    const player = PLAYERS[Number(game.currentPlayerIndex)]
     const [row, col] = makeMove(player, game.board, box)
 
     game.board[row][col] = player
-    game.playerIndex = !game.playerIndex
+    game.currentPlayerIndex = !game.currentPlayerIndex
     game.currentHistoryIndex += 1
     game.history.push(cloneBoard(game.board))
 
