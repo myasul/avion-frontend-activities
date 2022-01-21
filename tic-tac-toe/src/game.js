@@ -1,23 +1,11 @@
-const EMPTY_BOARD = [
-    ['', '', ''],
-    ['', '', ''],
-    ['', '', ''],
-]
-const DEFAULT_FIRST_PLAYER = 'X'
-const PLAYERS = ['X', 'O']
-const GAME_STATUS = {
-    XWin: 'X Wins',
-    OWin: 'O Wins',
-    Draw: 'Draw',
-    InProgress: 'In Progress'
-}
+import { EMPTY_BOARD, GAME_STATUS, PLAYER } from './constants.js'
+import { delayedAlert, cloneBoard, getRandomArbitrary, syncWait } from './utils.js'
 
-export const startGame = (firstPlayer = DEFAULT_FIRST_PLAYER) => {
+export const startGame = () => {
     const game = {
         board: cloneBoard(EMPTY_BOARD),
         history: [cloneBoard(EMPTY_BOARD)],
-        currentHistoryIndex: 0,
-        currentPlayerIndex: !!PLAYERS.indexOf(firstPlayer)
+        currentHistoryIndex: 0
     }
 
     // Add event listeners
@@ -53,22 +41,29 @@ export const restartGame = () => {
 
 const handleBoxClick = (event, game) => {
     const box = event.target
+    let status
 
     if (box.disabled) return
 
-    const player = PLAYERS[Number(game.currentPlayerIndex)]
-    const [row, col] = makeMove(player, game.board, box)
+    const [row, col] = makeHumanMove(box)
 
-    game.board[row][col] = player
-    game.currentPlayerIndex = !game.currentPlayerIndex
+    game.board[row][col] = PLAYER.Human
     game.currentHistoryIndex += 1
     game.history.push(cloneBoard(game.board))
 
-    const status = checkGameStatus(game.board)
+    status = checkGameStatus(game.board)
+    if (status !== GAME_STATUS.InProgress) return delayedAlert(status)
 
-    if (status === GAME_STATUS.InProgress) return
+    // syncWait(1000)
 
-    return setTimeout(() => alert(status), 0)
+    const [rowAI, colAI] = makeAIMove(game)
+
+    game.board[rowAI][colAI] = PLAYER.AI
+    game.currentHistoryIndex += 1
+    game.history.push(cloneBoard(game.board))
+
+    status = checkGameStatus(game.board)
+    if (status !== GAME_STATUS.InProgress) return delayedAlert(status)
 }
 
 const handlePreviousClick = (event, game) => {
@@ -107,11 +102,35 @@ const drawBoard = (board) => {
     }
 }
 
-const makeMove = (player, board, box) => {
-    if (!PLAYERS.includes(player)) throw new Error(`Invalid player: ${player}`)
+const makeAIMove = (game) => {
+    let move
+    do {
+        move = [0, 1].map(coord => getRandomArbitrary(0, 2))
+    } while (!isMoveValid(move))
 
+    const [row, col] = move
+
+    const box = document.querySelector(`div.row-${row + 1} div.col-${col + 1}`)
+    box.innerText = PLAYER.AI
     box.disabled = true
-    box.textContent = player
+
+    return move
+}
+
+const isMoveValid = (move) => {
+    const [row, col] = move
+
+    const rows = Array.from(document.querySelectorAll('div[class*="row"]'))
+    const boxes = rows.map(row => Array.from(row.querySelectorAll('div[class*="col"]')))
+
+    const box = boxes[row][col]
+
+    return box.innerText === ''
+}
+
+const makeHumanMove = (box) => {
+    box.disabled = true
+    box.textContent = PLAYER.Human
 
     return getMoveLocation(box)
 }
@@ -126,6 +145,7 @@ const getMoveLocation = (box) => {
 const checkGameStatus = (board) => {
     const boardLength = board.length
     const flattenBoard = []
+    const players = Object.values(PLAYER)
     let winner
 
     for (let row = 0;row < boardLength;row++) {
@@ -154,17 +174,15 @@ const checkGameStatus = (board) => {
 
         for (const match of matches) {
             const firstMove = match[0]
-            const hasMatch = PLAYERS.includes(firstMove) && match.every(player => player === firstMove)
+            const hasMatch = players.includes(firstMove) && match.every(player => player === firstMove)
             if (hasMatch) {
                 winner = firstMove
             }
         }
     }
 
-    if (winner) return winner === PLAYERS[0] ? GAME_STATUS.XWin : GAME_STATUS.OWin
-    if (flattenBoard.every(move => PLAYERS.includes(move))) return GAME_STATUS.Draw
+    if (winner) return winner === PLAYER.Human ? GAME_STATUS.XWin : GAME_STATUS.OWin
+    if (flattenBoard.every(move => players.includes(move))) return GAME_STATUS.Draw
 
     return GAME_STATUS.InProgress
 }
-
-const cloneBoard = (board) => board.map(row => [...row])
