@@ -110,7 +110,14 @@ const makeAIMove = (game) => {
 
     const box = document.querySelector(`div.row-${row + 1} div.col-${col + 1}`)
     // Add delay to have that "thinking" effect
-    setTimeout(() => { box.innerText = PLAYER.AI }, 400)
+    // setTimeout(() => { box.innerText = PLAYER.AI }, 400)
+
+    const image = new Image()
+    image.src = './assets/circle.svg'
+    image.alt = 'circle'
+
+    // Add delay to have that "thinking" effect
+    setTimeout(() => { box.appendChild(image) }, 400)
     box.disabled = true
 
     return move
@@ -124,12 +131,16 @@ const isMoveValid = (move) => {
 
     const box = boxes[row][col]
 
-    return box.innerText === ''
+    return box.firstChild === null
 }
 
 const makeHumanMove = (box) => {
+    const image = new Image()
+    image.src = './assets/x.svg'
+    image.alt = 'circle'
+
+    box.appendChild(image)
     box.disabled = true
-    box.textContent = PLAYER.Human
 
     return getMoveLocation(box)
 }
