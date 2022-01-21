@@ -95,7 +95,14 @@ const drawBoard = (board) => {
             const box = boxes[row][col]
             const boardValue = board[row][col]
 
-            box.innerText = boardValue
+            if (box.firstChild) box.removeChild(box.firstChild)
+            if (!boardValue) continue
+
+            const image = new Image()
+            image.src = `./assets/${boardValue}.svg`
+            image.alt = boardValue
+
+            box.appendChild(image)
         }
     }
 }
@@ -113,8 +120,8 @@ const makeAIMove = (game) => {
     // setTimeout(() => { box.innerText = PLAYER.AI }, 400)
 
     const image = new Image()
-    image.src = './assets/circle.svg'
-    image.alt = 'circle'
+    image.src = './assets/O.svg'
+    image.alt = 'O'
 
     // Add delay to have that "thinking" effect
     setTimeout(() => { box.appendChild(image) }, 400)
@@ -136,8 +143,8 @@ const isMoveValid = (move) => {
 
 const makeHumanMove = (box) => {
     const image = new Image()
-    image.src = './assets/x.svg'
-    image.alt = 'circle'
+    image.src = './assets/X.svg'
+    image.alt = 'X'
 
     box.appendChild(image)
     box.disabled = true
