@@ -1,5 +1,9 @@
 import { EMPTY_BOARD, GAME_STATUS, PLAYER } from './constants.js'
-import { delayedAlert, cloneBoard, getRandomArbitrary, recreateElement } from './utils.js'
+import {
+    cloneBoard,
+    getRandomArbitrary,
+    recreateElement
+} from './utils.js'
 
 /**
  * MAIN
@@ -24,10 +28,14 @@ export const startGame = () => {
         .addEventListener('click', () => handleNextClick(game))
     document
         .querySelector('.new-game')
-        .addEventListener('click', restartGame)
+        .addEventListener('click', handleNewGame)
 }
 
-export const restartGame = () => {
+/**
+ * HANDLERS
+ */
+
+export const handleNewGame = () => {
     // Remove current event listeners to avoid overlap
     const oldBoard = document.querySelector('.board')
     recreateElement(oldBoard)
@@ -43,13 +51,9 @@ export const restartGame = () => {
     startGame()
 }
 
-/**
- * HANDLERS
- */
-
 const handleBoxClick = (event, game) => {
     const box = event.target
-    let gameStatus
+    let gameState
 
     if (box.disabled) return
 
@@ -59,8 +63,8 @@ const handleBoxClick = (event, game) => {
     game.currentHistoryIndex += 1
     game.history.push(cloneBoard(game.board))
 
-    gameStatus = checkGameStatus(game.board)
-    if (gameStatus.status !== GAME_STATUS.InProgress) return handleAfterGame(gameStatus)
+    gameState = checkGameStatus(game.board)
+    if (gameState.status !== GAME_STATUS.InProgress) return handleAfterGame(gameState)
 
     const [rowAI, colAI] = makeAIMove()
 
@@ -68,30 +72,28 @@ const handleBoxClick = (event, game) => {
     game.currentHistoryIndex += 1
     game.history.push(cloneBoard(game.board))
 
-    gameStatus = checkGameStatus(game.board)
-    if (gameStatus.status !== GAME_STATUS.InProgress) return handleAfterGame(gameStatus)
+    gameState = checkGameStatus(game.board)
+    if (gameState.status !== GAME_STATUS.InProgress) return handleAfterGame(gameState)
 }
 
-const handleAfterGame = (gameStatus) => {
-    const { status, winningCoordinates } = gameStatus
-    const boxes = getBoardBoxes()
-
-    if (winningCoordinates) {
-        for (const [row, col] of winningCoordinates) {
-            const box = boxes[row][col]
-            box.classList.add('blink')
-        }
-    }
-
+const handleAfterGame = (gameState) => {
     const historyControls = document.querySelector('.history-controls')
     historyControls.classList.remove('hide')
 
     const nextButton = document.querySelector('.next')
     nextButton.disabled = true
 
+    const { status, winningCoordinates } = gameState
+    const boxes = getBoardBoxes()
+
     boxes.flatMap(box => box).forEach(box => { box.setAttribute('disabled', true) })
 
-    return
+    if (!winningCoordinates) return
+
+    for (const [row, col] of winningCoordinates) {
+        const box = boxes[row][col]
+        box.classList.add('blink')
+    }
 }
 
 const handlePreviousClick = (game) => {
@@ -175,7 +177,7 @@ const makeAIMove = (game) => {
     image.alt = PLAYER.AI
 
     // Add delay to have that "thinking" effect
-    setTimeout(() => { newBox.appendChild(image) }, 200)
+    setTimeout(() => { newBox.appendChild(image) }, 400)
     newBox.setAttribute('disabled', true)
 
     return move
@@ -222,7 +224,7 @@ const checkGameStatus = (board) => {
     const boardLength = board.length
     const flattenBoard = []
     const players = Object.values(PLAYER)
-    const gameStatus = {
+    const gameState = {
         status: GAME_STATUS.InProgress,
         winningCoordinates: undefined
     }
@@ -272,10 +274,10 @@ const checkGameStatus = (board) => {
     }
 
     if (winner && winningCoordinates) {
-        gameStatus.status = winner === PLAYER.Human ? GAME_STATUS.XWin : GAME_STATUS.OWin
-        gameStatus.winningCoordinates = winningCoordinates
+        gameState.status = winner === PLAYER.Human ? GAME_STATUS.XWin : GAME_STATUS.OWin
+        gameState.winningCoordinates = winningCoordinates
     }
-    if (flattenBoard.every(move => players.includes(move))) gameStatus.status = GAME_STATUS.Draw
+    if (flattenBoard.every(move => players.includes(move))) gameState.status = GAME_STATUS.Draw
 
-    return gameStatus
+    return gameState
 }

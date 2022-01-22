@@ -1,6 +1,5 @@
 export const cloneBoard = (board) => board.map(row => [...row])
 export const getRandomArbitrary = (min, max) => Math.round(Math.random() * (max - min) + min)
-export const delayedAlert = (message) => setTimeout(() => alert(message), 400)
 export const recreateElement = (element) => {
     const clonedNode = element.cloneNode(true)
     const parent = element.parentNode
