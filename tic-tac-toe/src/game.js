@@ -1,4 +1,4 @@
-import { EMPTY_BOARD, GAME_STATUS, PLAYER, COLORS } from './constants.js'
+import { EMPTY_BOARD, GAME_STATUS, PLAYER } from './constants.js'
 import { delayedAlert, cloneBoard, getRandomArbitrary, recreateElement } from './utils.js'
 
 /**
@@ -34,7 +34,10 @@ export const restartGame = () => {
 
     const oldHistoryControls = document.querySelector('.history-controls')
     const historyControls = recreateElement(oldHistoryControls)
-    historyControls.style.visibility = 'hidden'
+    historyControls.classList.add('hide')
+
+    const boxes = getBoardBoxes()
+    boxes.flatMap(box => box).forEach(box => { box.classList.remove('blink') })
 
     drawBoard(cloneBoard(EMPTY_BOARD), { enableBoxes: true })
     startGame()
@@ -46,7 +49,7 @@ export const restartGame = () => {
 
 const handleBoxClick = (event, game) => {
     const box = event.target
-    let status
+    let gameStatus
 
     if (box.disabled) return
 
@@ -56,8 +59,8 @@ const handleBoxClick = (event, game) => {
     game.currentHistoryIndex += 1
     game.history.push(cloneBoard(game.board))
 
-    status = checkGameStatus(game.board)
-    if (status !== GAME_STATUS.InProgress) return handleAfterGame(status)
+    gameStatus = checkGameStatus(game.board)
+    if (gameStatus.status !== GAME_STATUS.InProgress) return handleAfterGame(gameStatus)
 
     const [rowAI, colAI] = makeAIMove()
 
@@ -65,21 +68,28 @@ const handleBoxClick = (event, game) => {
     game.currentHistoryIndex += 1
     game.history.push(cloneBoard(game.board))
 
-    status = checkGameStatus(game.board)
-    if (status !== GAME_STATUS.InProgress) return handleAfterGame(status)
+    gameStatus = checkGameStatus(game.board)
+    if (gameStatus.status !== GAME_STATUS.InProgress) return handleAfterGame(gameStatus)
 }
 
-const handleAfterGame = (status) => {
-    delayedAlert(status)
+const handleAfterGame = (gameStatus) => {
+    const { status, winningCoordinates } = gameStatus
+    const boxes = getBoardBoxes()
+
+    if (winningCoordinates) {
+        for (const [row, col] of winningCoordinates) {
+            const box = boxes[row][col]
+            box.classList.add('blink')
+        }
+    }
 
     const historyControls = document.querySelector('.history-controls')
-    historyControls.style.visibility = 'visible'
+    historyControls.classList.remove('hide')
 
     const nextButton = document.querySelector('.next')
     nextButton.disabled = true
 
-    const boxes = Array.from(document.querySelectorAll('.box'))
-    boxes.forEach(box => { box.setAttribute('disabled', true) })
+    boxes.flatMap(box => box).forEach(box => { box.setAttribute('disabled', true) })
 
     return
 }
@@ -147,6 +157,7 @@ const drawBoard = (board, options = {}) => {
     }
 }
 
+// TODO: Add difficulty
 const makeAIMove = (game) => {
     let move
     do {
@@ -172,10 +183,7 @@ const makeAIMove = (game) => {
 
 const isMoveValid = (move) => {
     const [row, col] = move
-
-    const rows = Array.from(document.querySelectorAll('div[class*="row"]'))
-    const boxes = rows.map(row => Array.from(row.querySelectorAll('div[class*="col"]')))
-
+    const boxes = getBoardBoxes()
     const box = boxes[row][col]
 
     return box.firstChild === null
@@ -203,27 +211,45 @@ const getMoveLocation = (box) => {
     return [Number(rowIndex) - 1, Number(columnIndex) - 1]
 }
 
+const getBoardBoxes = (coordinates) => {
+    const rows = Array.from(document.querySelectorAll('div[class*="row"]'))
+    const boxes = rows.map(row => Array.from(row.querySelectorAll('div[class*="col"]')))
+
+    return boxes
+}
+
 const checkGameStatus = (board) => {
     const boardLength = board.length
     const flattenBoard = []
     const players = Object.values(PLAYER)
-    let winner
+    const gameStatus = {
+        status: GAME_STATUS.InProgress,
+        winningCoordinates: undefined
+    }
+    let winner, winningCoordinates
 
     for (let row = 0;row < boardLength;row++) {
-        const horizontalMatch = []
-        const verticalMatch = []
-        const diagonalMatch = []
-        const diagonalReverseMatch = []
+        const horizontalMatch = { moves: [], coordinates: [] }
+        const verticalMatch = { moves: [], coordinates: [] }
+        const diagonalMatch = { moves: [], coordinates: [] }
+        const diagonalReverseMatch = { moves: [], coordinates: [] }
 
         for (let col = 0;col < boardLength;col++) {
-            horizontalMatch.push(board[row][col])
-            verticalMatch.push(board[col][row])
+            horizontalMatch.moves.push(board[row][col])
+            horizontalMatch.coordinates.push([row, col])
+
+            verticalMatch.moves.push(board[col][row])
+            verticalMatch.coordinates.push([col, row])
+
             flattenBoard.push(board[row][col])
         }
 
         for (let rev = boardLength - 1;rev >= 0;rev--) {
-            diagonalMatch.push(board[rev][rev])
-            diagonalReverseMatch.push(board[(boardLength - 1) - rev][rev])
+            diagonalMatch.moves.push(board[rev][rev])
+            diagonalMatch.coordinates.push([rev, rev])
+
+            diagonalReverseMatch.moves.push(board[(boardLength - 1) - rev][rev])
+            diagonalReverseMatch.coordinates.push([(boardLength - 1) - rev, rev])
         }
 
         const matches = [
@@ -234,16 +260,22 @@ const checkGameStatus = (board) => {
         ]
 
         for (const match of matches) {
-            const firstMove = match[0]
-            const hasMatch = players.includes(firstMove) && match.every(player => player === firstMove)
-            if (hasMatch) {
+            const { moves, coordinates } = match
+
+            const firstMove = moves[0]
+            const hasWinningPattern = players.includes(firstMove) && moves.every(player => player === firstMove)
+            if (hasWinningPattern) {
                 winner = firstMove
+                winningCoordinates = coordinates
             }
         }
     }
 
-    if (winner) return winner === PLAYER.Human ? GAME_STATUS.XWin : GAME_STATUS.OWin
-    if (flattenBoard.every(move => players.includes(move))) return GAME_STATUS.Draw
+    if (winner && winningCoordinates) {
+        gameStatus.status = winner === PLAYER.Human ? GAME_STATUS.XWin : GAME_STATUS.OWin
+        gameStatus.winningCoordinates = winningCoordinates
+    }
+    if (flattenBoard.every(move => players.includes(move))) gameStatus.status = GAME_STATUS.Draw
 
-    return GAME_STATUS.InProgress
+    return gameStatus
 }

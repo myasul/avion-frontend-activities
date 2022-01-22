@@ -54,8 +54,6 @@ main {
 .board .box img {
     height: 80%;
     width: 80%;
-    animation-duration: 0.3s;
-    animation-name: slidein;
 }
 
 .board .box:hover {
@@ -69,9 +67,12 @@ main {
     display: flex;
     justify-content: space-between;
     margin: 0 auto;
-    visibility: hidden;
     animation-duration: 0.3s;
     animation-name: slidein;
+}
+
+.hide {
+    display: none;
 }
 
 .history-controls button {
@@ -83,8 +84,6 @@ main {
     border-radius: 7px;
     box-shadow: 3px 3px 1px white;
     transition: 0.3s;
-    animation-duration: 0.3s;
-    animation-name: slidein;
     background-color: black;
 }
 
@@ -108,6 +107,10 @@ main {
     cursor: not-allowed;
 }
 
+.blink {
+    animation: blink ease 0.5s 2;
+}
+
 @keyframes slidein {
     from {
         max-height: 0;
@@ -118,6 +121,24 @@ main {
     to {
         max-height: 100%;
         transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+    25% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 0.0;
+    }
+    75% {
+        opacity: 0.5;
+    }
+    100% {
         opacity: 1;
     }
 }
