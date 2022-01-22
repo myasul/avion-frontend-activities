@@ -146,7 +146,6 @@ const drawBoard = (board, options = {}) => {
             const boardValue = board[row][col]
 
             if (enableBoxes) box.setAttribute('disabled', false)
-
             if (box.firstChild) box.removeChild(box.firstChild)
             if (!boardValue) continue
 
@@ -183,14 +182,6 @@ const makeAIMove = (game) => {
     return move
 }
 
-const isMoveValid = (move) => {
-    const [row, col] = move
-    const boxes = getBoardBoxes()
-    const box = boxes[row][col]
-
-    return box.firstChild === null
-}
-
 const makeHumanMove = (box) => {
     // Recreate element to remove click event
     const newBox = recreateElement(box)
@@ -204,6 +195,14 @@ const makeHumanMove = (box) => {
     newBox.setAttribute('disabled', true)
 
     return getMoveLocation(newBox)
+}
+
+const isMoveValid = (move) => {
+    const [row, col] = move
+    const boxes = getBoardBoxes()
+    const box = boxes[row][col]
+
+    return box.firstChild === null
 }
 
 const getMoveLocation = (box) => {
