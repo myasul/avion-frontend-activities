@@ -59,8 +59,8 @@ const handleNewGame = () => {
     const historyControls = recreateElement(oldHistoryControls)
     historyControls.classList.add('hide')
 
-    const boxes = getBoardBoxes()
-    boxes.flatMap(box => box).forEach(box => box.classList.remove('blink'))
+    const boxes = getBoardBoxes({ flatten: true })
+    boxes.forEach(box => box.classList.remove('blink'))
 
     drawBoard(cloneBoard(EMPTY_BOARD), { enableBoxes: true })
     startGame()
@@ -101,14 +101,16 @@ const handleAfterGame = (gameState) => {
     const { status, winningCoordinates } = gameState
     const boxes = getBoardBoxes()
 
-    boxes.flatMap(box => box).forEach(box => { box.setAttribute('disabled', true) })
-
-    if (!winningCoordinates) return
-
-    for (const [row, col] of winningCoordinates) {
-        const box = boxes[row][col]
-        box.classList.add('blink')
+    if (winningCoordinates) {
+        for (const [row, col] of winningCoordinates) {
+            const box = boxes[row][col]
+            box.classList.add('blink')
+        }
+    } else {
+        boxes.flat().forEach(box => box.classList.add('blink'))
     }
+
+    boxes.flat().forEach(box => { box.setAttribute('disabled', true) })
 }
 
 const handlePreviousClick = (game) => {

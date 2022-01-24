@@ -7,8 +7,7 @@ import { getRandomArbitrary, recreateElement, cloneBoard } from './lib/utils.js'
 
 export const drawBoard = (board, options = {}) => {
     const { enableBoxes } = options
-    const rows = Array.from(document.querySelectorAll('div[class*="row"]'))
-    const boxes = rows.map(row => Array.from(row.querySelectorAll('div[class*="col"]')))
+    const boxes = getBoardBoxes()
 
     for (let row = 0;row < board.length;row++) {
         for (let col = 0;col < board.length;col++) {
@@ -28,32 +27,43 @@ export const drawBoard = (board, options = {}) => {
     }
 }
 
-// TODO: Add difficulty
+const makeMove = (box, player, options = {}) => {
+    const { delayMs } = options
+
+    const image = new Image()
+    image.src = `./assets/${player}.svg`
+    image.alt = player
+    image.classList.add('slide')
+
+    // Recreate element to remove click event
+    const newBox = recreateElement(box)
+    newBox.setAttribute('disabled', true)
+    delayMs
+        ? setTimeout(() => { newBox.appendChild(image) }, 400)
+        : newBox.appendChild(image)
+
+    return newBox
+}
+
+export const makeHumanMove = (box) => {
+    // Recreate element to remove click event
+    const newBox = makeMove(box, PLAYER.X)
+
+    return getMoveLocation(newBox)
+}
+
 export const makeComputerMove = (game) => {
     const { board, difficulty } = game
-
-    let move
-
-    if (difficulty === GAME_DIFFICULTY.Easy) {
-        move = makeRandomMove(board)
-    } else {
-        move = makeBestMove(board, PLAYER.O)
-    }
+    const move = difficulty === GAME_DIFFICULTY.Easy
+        ? makeRandomMove(board)
+        : makeBestMove(board, PLAYER.O)
 
     const [row, col] = move
 
     const box = document.querySelector(`div.row-${row + 1} div.col-${col + 1}`)
-    // Recreate element to remove click event
-    const newBox = recreateElement(box)
-
-    const image = new Image()
-    image.src = `./assets/${PLAYER.O}.svg`
-    image.alt = PLAYER.O
-    image.classList.add('slide')
 
     // Add delay to have that "thinking" effect
-    setTimeout(() => { newBox.appendChild(image) }, 400)
-    newBox.setAttribute('disabled', true)
+    makeMove(box, PLAYER.O, { delayMs: 400 })
 
     return move
 }
@@ -116,12 +126,10 @@ const minimax = (board, depth, isMaximizing) => {
         for (let row = 0;row < board.length;row++) {
             for (let col = 0;col < board.length;col++) {
                 if (board[row][col] === PLAYER.Blank) {
-                    // console.log(`0-BOARD[${row}][${col}] BEFORE UPDATE: `, board)
 
                     // Make move
                     board[row][col] = PLAYER.O
 
-                    // Score negative for opponent move
                     const score = minimax(board, depth + 1, false)
                     bestScore = Math.max(score, bestScore)
 
@@ -141,7 +149,6 @@ const minimax = (board, depth, isMaximizing) => {
                     // Make move
                     board[row][col] = PLAYER.X
 
-                    // Score negative for opponent move
                     const score = minimax(board, depth + 1, true)
                     bestScore = Math.min(score, bestScore)
 
@@ -193,29 +200,6 @@ const checkWinner = (board) => {
     if (winner) return winner
 
     return undefined
-}
-
-export const makeHumanMove = (box) => {
-    // Recreate element to remove click event
-    const newBox = recreateElement(box)
-    newBox.setAttribute('disabled', true)
-
-    const image = new Image()
-    image.src = `./assets/${PLAYER.X}.svg`
-    image.alt = PLAYER.X
-    image.classList.add('slide')
-
-    newBox.appendChild(image)
-    newBox.setAttribute('disabled', true)
-
-    return getMoveLocation(newBox)
-}
-
-export const getBoardBoxes = () => {
-    const rows = Array.from(document.querySelectorAll('div[class*="row"]'))
-    const boxes = rows.map(row => Array.from(row.querySelectorAll('div[class*="col"]')))
-
-    return boxes
 }
 
 export const checkWinnerWithCoordinates = (board) => {
@@ -270,13 +254,22 @@ export const checkWinnerWithCoordinates = (board) => {
         }
     }
 
-    if (win.winner  !== undefined) return win
+    if (win.winner !== undefined) return win
     if (flattenBoard.every(move => move !== PLAYER.Blank)) {
         win.winner = PLAYER.Blank
         return win
     }
 
     return undefined
+}
+
+export const getBoardBoxes = (options = {}) => {
+    const { flatten } = options
+
+    const rows = Array.from(document.querySelectorAll('div[class*="row"]'))
+    const boxes = rows.map(row => Array.from(row.querySelectorAll('div[class*="col"]')))
+
+    return flatten ? boxes.flat() : boxes
 }
 
 /**
