@@ -9,7 +9,20 @@ export const GAME_STATUS = {
     Draw: 'Draw',
     InProgress: 'In Progress'
 }
+
 export const PLAYER = {
-    Human: 'X',
-    AI: 'O'
+    X: 'X',
+    O: 'O',
+    Blank: '_'
+}
+
+export const PLAYER_VALUE = {
+    X: -10,
+    O: 10,
+    Draw: 0
+}
+
+export const GAME_DIFFICULTY = {
+    Easy: 'Easy',
+    Hard: 'Hard'
 }

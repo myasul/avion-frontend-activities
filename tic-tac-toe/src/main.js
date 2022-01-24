@@ -1,10 +1,15 @@
-import { EMPTY_BOARD, GAME_STATUS, PLAYER } from './lib/constants.js'
+import {
+    EMPTY_BOARD,
+    GAME_STATUS,
+    PLAYER,
+    GAME_DIFFICULTY
+} from './lib/constants.js'
 import { cloneBoard, recreateElement } from './lib/utils.js'
 import {
     drawBoard,
-    makeAIMove,
+    makeComputerMove,
     makeHumanMove,
-    checkGameStatus,
+    checkWinnerWithCoordinates,
     getBoardBoxes
 } from './game.js'
 
@@ -13,12 +18,18 @@ import {
  * MAIN
  */
 
-export const startGame = () => {
+export const startGame = (options = {}) => {
+    const { difficulty } = options
+    const gameDifficulty = difficulty ?? GAME_DIFFICULTY.Hard
+
     const game = {
         board: cloneBoard(EMPTY_BOARD),
         history: [cloneBoard(EMPTY_BOARD)],
-        currentHistoryIndex: 0
+        currentHistoryIndex: 0,
+        difficulty: gameDifficulty
     }
+
+    drawBoard(game.board)
 
     // Add event listeners
     document
@@ -39,7 +50,7 @@ export const startGame = () => {
  * HANDLERS
  */
 
-export const handleNewGame = () => {
+const handleNewGame = () => {
     // Remove current event listeners to avoid overlap
     const oldBoard = document.querySelector('.board')
     recreateElement(oldBoard)
@@ -49,7 +60,7 @@ export const handleNewGame = () => {
     historyControls.classList.add('hide')
 
     const boxes = getBoardBoxes()
-    boxes.flatMap(box => box).forEach(box => { box.classList.remove('blink') })
+    boxes.flatMap(box => box).forEach(box => box.classList.remove('blink'))
 
     drawBoard(cloneBoard(EMPTY_BOARD), { enableBoxes: true })
     startGame()
@@ -57,27 +68,27 @@ export const handleNewGame = () => {
 
 const handleBoxClick = (event, game) => {
     const box = event.target
-    let gameState
+    let winner
 
     if (box.disabled) return
 
     const [row, col] = makeHumanMove(box)
 
-    game.board[row][col] = PLAYER.Human
+    game.board[row][col] = PLAYER.X
     game.currentHistoryIndex += 1
     game.history.push(cloneBoard(game.board))
 
-    gameState = checkGameStatus(game.board)
-    if (gameState.status !== GAME_STATUS.InProgress) return handleAfterGame(gameState)
+    winner = checkWinnerWithCoordinates(game.board)
+    if (winner) return handleAfterGame(winner)
 
-    const [rowAI, colAI] = makeAIMove()
+    const [rowAI, colAI] = makeComputerMove(game)
 
-    game.board[rowAI][colAI] = PLAYER.AI
+    game.board[rowAI][colAI] = PLAYER.O
     game.currentHistoryIndex += 1
     game.history.push(cloneBoard(game.board))
 
-    gameState = checkGameStatus(game.board)
-    if (gameState.status !== GAME_STATUS.InProgress) return handleAfterGame(gameState)
+    winner = checkWinnerWithCoordinates(game.board)
+    if (winner) return handleAfterGame(winner)
 }
 
 const handleAfterGame = (gameState) => {

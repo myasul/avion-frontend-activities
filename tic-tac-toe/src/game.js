@@ -1,5 +1,5 @@
-import { EMPTY_BOARD, GAME_STATUS, PLAYER } from './lib/constants.js'
-import { getRandomArbitrary, recreateElement } from './lib/utils.js'
+import { EMPTY_BOARD, GAME_DIFFICULTY, GAME_STATUS, PLAYER, PLAYER_VALUE } from './lib/constants.js'
+import { getRandomArbitrary, recreateElement, cloneBoard } from './lib/utils.js'
 
 /**
  * GAME FUNCTIONS
@@ -17,7 +17,7 @@ export const drawBoard = (board, options = {}) => {
 
             if (enableBoxes) box.setAttribute('disabled', false)
             if (box.firstChild) box.removeChild(box.firstChild)
-            if (!boardValue) continue
+            if (boardValue === PLAYER.Blank) continue
 
             const image = new Image()
             image.src = `./assets/${boardValue}.svg`
@@ -29,11 +29,16 @@ export const drawBoard = (board, options = {}) => {
 }
 
 // TODO: Add difficulty
-export const makeAIMove = (game) => {
+export const makeComputerMove = (game) => {
+    const { board, difficulty } = game
+
     let move
-    do {
-        move = [0, 1].map(coord => getRandomArbitrary(0, 2))
-    } while (!isMoveValid(move))
+
+    if (difficulty === GAME_DIFFICULTY.Easy) {
+        move = makeRandomMove(board)
+    } else {
+        move = makeBestMove(board, PLAYER.O)
+    }
 
     const [row, col] = move
 
@@ -42,8 +47,8 @@ export const makeAIMove = (game) => {
     const newBox = recreateElement(box)
 
     const image = new Image()
-    image.src = `./assets/${PLAYER.AI}.svg`
-    image.alt = PLAYER.AI
+    image.src = `./assets/${PLAYER.O}.svg`
+    image.alt = PLAYER.O
     image.classList.add('slide')
 
     // Add delay to have that "thinking" effect
@@ -53,14 +58,151 @@ export const makeAIMove = (game) => {
     return move
 }
 
+const makeRandomMove = (board) => {
+    let move
+
+    do {
+        move = [0, 1].map(coord => getRandomArbitrary(0, 2))
+    } while (!isMoveValid(move, board))
+
+    return move
+}
+
+const makeBestMove = (board, player) => {
+    let bestScore = -Infinity
+    let bestMove = [-1, -1]
+
+    for (let row = 0;row < board.length;row++) {
+        for (let col = 0;col < board.length;col++) {
+            const clonedBoard = cloneBoard(board)
+
+            if (clonedBoard[row][col] === PLAYER.Blank) {
+                // Make move
+                clonedBoard[row][col] = player
+
+                // Get value or "score" for this move
+                const score = minimax(clonedBoard, 0, false)
+
+                if (score > bestScore) {
+                    bestScore = score
+                    bestMove = [row, col]
+                }
+
+                // break
+
+                // Undo move
+                clonedBoard[row][col] = PLAYER.Blank
+            }
+        }
+    }
+
+    return bestMove
+}
+
+const minimax = (board, depth, isMaximizing) => {
+    const winner = checkWinner(board)
+
+    if (winner === PLAYER.X || winner === PLAYER.O) {
+        return isMaximizing ? PLAYER_VALUE[winner] + depth : PLAYER_VALUE[winner] - depth
+    }
+
+    if (hasNoAvailableMoves(board)) {
+        return PLAYER_VALUE.Draw
+    }
+
+    if (isMaximizing) {
+        let bestScore = -Infinity
+
+        for (let row = 0;row < board.length;row++) {
+            for (let col = 0;col < board.length;col++) {
+                if (board[row][col] === PLAYER.Blank) {
+                    // console.log(`0-BOARD[${row}][${col}] BEFORE UPDATE: `, board)
+
+                    // Make move
+                    board[row][col] = PLAYER.O
+
+                    // Score negative for opponent move
+                    const score = minimax(board, depth + 1, false)
+                    bestScore = Math.max(score, bestScore)
+
+                    // Undo move
+                    board[row][col] = PLAYER.Blank
+                }
+            }
+        }
+
+        return bestScore
+    } else {
+        let bestScore = Infinity
+
+        for (let row = 0;row < board.length;row++) {
+            for (let col = 0;col < board.length;col++) {
+                if (board[row][col] === PLAYER.Blank) {
+                    // Make move
+                    board[row][col] = PLAYER.X
+
+                    // Score negative for opponent move
+                    const score = minimax(board, depth + 1, true)
+                    bestScore = Math.min(score, bestScore)
+
+                    // Undo move
+                    board[row][col] = PLAYER.Blank
+                }
+            }
+        }
+
+        return bestScore
+    }
+}
+
+const checkWinner = (board) => {
+    let winner
+
+    for (let row = 0;row < board.length;row++) {
+        const horizontalMatch = []
+        const verticalMatch = []
+        const diagonalMatch = []
+        const diagonalReverseMatch = []
+
+        for (let col = 0;col < board.length;col++) {
+            horizontalMatch.push(board[row][col])
+            verticalMatch.push(board[col][row])
+        }
+
+        for (let rev = board.length - 1;rev >= 0;rev--) {
+            diagonalMatch.push(board[rev][rev])
+            diagonalReverseMatch.push(board[(board.length - 1) - rev][rev])
+        }
+
+        const matches = [
+            horizontalMatch,
+            verticalMatch,
+            diagonalMatch,
+            diagonalReverseMatch
+        ]
+
+        for (const match of matches) {
+            const firstMove = match[0]
+            const hasWinningPattern = firstMove !== PLAYER.Blank && match.every(move => move === firstMove)
+            if (hasWinningPattern) {
+                winner = firstMove
+            }
+        }
+    }
+
+    if (winner) return winner
+
+    return undefined
+}
+
 export const makeHumanMove = (box) => {
     // Recreate element to remove click event
     const newBox = recreateElement(box)
     newBox.setAttribute('disabled', true)
 
     const image = new Image()
-    image.src = `./assets/${PLAYER.Human}.svg`
-    image.alt = PLAYER.Human
+    image.src = `./assets/${PLAYER.X}.svg`
+    image.alt = PLAYER.X
     image.classList.add('slide')
 
     newBox.appendChild(image)
@@ -69,19 +211,18 @@ export const makeHumanMove = (box) => {
     return getMoveLocation(newBox)
 }
 
-export const getBoardBoxes = (coordinates) => {
+export const getBoardBoxes = () => {
     const rows = Array.from(document.querySelectorAll('div[class*="row"]'))
     const boxes = rows.map(row => Array.from(row.querySelectorAll('div[class*="col"]')))
 
     return boxes
 }
 
-export const checkGameStatus = (board) => {
+export const checkWinnerWithCoordinates = (board) => {
     const boardLength = board.length
     const flattenBoard = []
-    const players = Object.values(PLAYER)
-    const gameState = {
-        status: GAME_STATUS.InProgress,
+    const win = {
+        winner: undefined,
         winningCoordinates: undefined
     }
     let winner, winningCoordinates
@@ -121,33 +262,32 @@ export const checkGameStatus = (board) => {
             const { moves, coordinates } = match
 
             const firstMove = moves[0]
-            const hasWinningPattern = players.includes(firstMove) && moves.every(player => player === firstMove)
+            const hasWinningPattern = firstMove !== PLAYER.Blank && moves.every(player => player === firstMove)
             if (hasWinningPattern) {
-                winner = firstMove
-                winningCoordinates = coordinates
+                win.winner = firstMove
+                win.winningCoordinates = coordinates
             }
         }
     }
 
-    if (winner && winningCoordinates) {
-        gameState.status = winner === PLAYER.Human ? GAME_STATUS.XWin : GAME_STATUS.OWin
-        gameState.winningCoordinates = winningCoordinates
+    if (win.winner  !== undefined) return win
+    if (flattenBoard.every(move => move !== PLAYER.Blank)) {
+        win.winner = PLAYER.Blank
+        return win
     }
-    if (flattenBoard.every(move => players.includes(move))) gameState.status = GAME_STATUS.Draw
 
-    return gameState
+    return undefined
 }
 
 /**
  * PRIVATE FUNCTIONS
  */
 
-const isMoveValid = (move) => {
+const isMoveValid = (move, board) => {
     const [row, col] = move
-    const boxes = getBoardBoxes()
-    const box = boxes[row][col]
+    const moveValue = board[row][col]
 
-    return box.firstChild === null
+    return moveValue === PLAYER.Blank
 }
 
 const getMoveLocation = (box) => {
@@ -155,4 +295,12 @@ const getMoveLocation = (box) => {
     const columnIndex = Array.from(box.classList).find(className => className.startsWith('col'))?.split('-')[1]
 
     return [Number(rowIndex) - 1, Number(columnIndex) - 1]
+}
+
+const hasNoAvailableMoves = (board) => {
+    return board.flat().every(box => box !== PLAYER.Blank)
+}
+
+const getOpponnent = (player) => {
+    return player === PLAYER.X ? PLAYER.O : PLAYER.X
 }
