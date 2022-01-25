@@ -128,7 +128,10 @@ main {
     display: flex;
     justify-content: start;
     text-align: left;
-    border-bottom: 5px solid #14bdac;
+}
+
+.highlight-button {
+    border-bottom: 5px solid #14bdac !important;
 }
 
 .difficulty-controls button:hover {

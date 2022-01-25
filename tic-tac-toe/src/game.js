@@ -164,8 +164,6 @@ const makeBestMove = (board, player) => {
                     bestMove = [row, col]
                 }
 
-                // break
-
                 // Undo move
                 clonedBoard[row][col] = PLAYER.Blank
             }

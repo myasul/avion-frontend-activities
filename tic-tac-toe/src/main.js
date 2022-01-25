@@ -17,15 +17,12 @@ import {
 /* MAIN */
 /********/
 
-export const startGame = (options = {}) => {
-    const { difficulty } = options
-    const gameDifficulty = difficulty ?? GAME_DIFFICULTY.Hard
-
+export const startGame = (difficulty) => {
     const game = {
         board: cloneBoard(EMPTY_BOARD),
         history: [cloneBoard(EMPTY_BOARD)],
         currentHistoryIndex: 0,
-        difficulty: gameDifficulty
+        difficulty
     }
 
     drawBoard(game.board)
@@ -42,14 +39,16 @@ export const startGame = (options = {}) => {
         .addEventListener('click', () => handleNextClick(game))
     document
         .querySelector('.new-game')
-        .addEventListener('click', handleNewGame)
+        .addEventListener('click', () => restartGame(game.difficulty))
+    document
+        .querySelector('.easy')
+        .addEventListener('click', handleEasyGameHandler)
+    document
+        .querySelector('.hard')
+        .addEventListener('click', handleHardGameHandler)
 }
 
-/************/
-/* HANDLERS */
-/************/
-
-const handleNewGame = () => {
+const restartGame = (difficulty) => {
     // Remove current event listeners to avoid overlap
     const oldBoard = document.querySelector('.board')
     recreateElement(oldBoard)
@@ -62,8 +61,12 @@ const handleNewGame = () => {
     boxes.forEach(box => box.classList.remove('blink'))
 
     drawBoard(cloneBoard(EMPTY_BOARD), { enableBoxes: true })
-    startGame()
+    startGame(difficulty)
 }
+
+/************/
+/* HANDLERS */
+/************/
 
 const handleBoxClick = (event, game) => {
     const box = event.target
@@ -145,4 +148,24 @@ const handleNextClick = (game) => {
     drawBoard(board)
 
     game.currentHistoryIndex = index
+}
+
+const handleEasyGameHandler = () => {
+    const easyButton = document.querySelector('.easy')
+    const hardButton = document.querySelector('.hard')
+
+    easyButton.classList.add('highlight-button', 'slide')
+    hardButton.classList.remove('highlight-button')
+
+    restartGame(GAME_DIFFICULTY.Easy)
+}
+
+const handleHardGameHandler = () => {
+    const easyButton = document.querySelector('.easy')
+    const hardButton = document.querySelector('.hard')
+
+    easyButton.classList.remove('highlight-button')
+    hardButton.classList.add('highlight-button', 'slide')
+
+    restartGame(GAME_DIFFICULTY.Hard)
 }

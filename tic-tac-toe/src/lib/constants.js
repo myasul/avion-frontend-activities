@@ -28,6 +28,6 @@ export const PLAYER_VALUE = {
 }
 
 export const GAME_DIFFICULTY = {
-    Easy: 'Easy',
-    Hard: 'Hard'
+    Easy: 'easy',
+    Hard: 'hard'
 }
