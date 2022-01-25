@@ -13,10 +13,9 @@ import {
     getBoardBoxes
 } from './game.js'
 
-
-/**
- * MAIN
- */
+/********/
+/* MAIN */
+/********/
 
 export const startGame = (options = {}) => {
     const { difficulty } = options
@@ -46,9 +45,9 @@ export const startGame = (options = {}) => {
         .addEventListener('click', handleNewGame)
 }
 
-/**
- * HANDLERS
- */
+/************/
+/* HANDLERS */
+/************/
 
 const handleNewGame = () => {
     // Remove current event listeners to avoid overlap

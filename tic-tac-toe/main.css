@@ -4,6 +4,7 @@ body {
     padding: 0;
     background-color: black;
     color: white;
+    font-family: 'Amatic SC', cursive;
 }
 
 main {
@@ -12,6 +13,7 @@ main {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    gap: 50px;
 }
 
 .board {
@@ -110,6 +112,38 @@ main {
 .history-controls button:disabled {
     background-color: grey;
     cursor: not-allowed;
+}
+
+.difficulty-controls {
+    width: 500px;
+    display: flex;
+    gap: 20px;
+}
+
+.difficulty-controls button {
+    all: unset;
+    border: 1px solid #d8d8d8;
+    width: 100%;
+    border-radius: 10px;
+    display: flex;
+    justify-content: start;
+    text-align: left;
+    border-bottom: 5px solid #14bdac;
+}
+
+.difficulty-controls button:hover {
+    cursor: pointer;
+}
+
+.difficulty-controls img {
+    width: 40px;
+    margin: 0 10px;
+}
+
+.difficulty-controls h1 {
+    font-size: 40px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .blink {

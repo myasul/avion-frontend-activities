@@ -1,9 +1,9 @@
 import { EMPTY_BOARD, GAME_DIFFICULTY, GAME_STATUS, PLAYER, PLAYER_VALUE } from './lib/constants.js'
 import { getRandomArbitrary, recreateElement, cloneBoard } from './lib/utils.js'
 
-/**
- * GAME FUNCTIONS
- */
+/******************/
+/* GAME FUNCTIONS */
+/******************/
 
 export const drawBoard = (board, options = {}) => {
     const { enableBoxes } = options
@@ -26,6 +26,72 @@ export const drawBoard = (board, options = {}) => {
         }
     }
 }
+
+export const checkWinnerWithCoordinates = (board) => {
+    const boardLength = board.length
+    const flattenBoard = []
+    const win = {
+        winner: undefined,
+        winningCoordinates: undefined
+    }
+    let winner, winningCoordinates
+
+    for (let row = 0;row < boardLength;row++) {
+        const horizontalMatch = { moves: [], coordinates: [] }
+        const verticalMatch = { moves: [], coordinates: [] }
+        const diagonalMatch = { moves: [], coordinates: [] }
+        const diagonalReverseMatch = { moves: [], coordinates: [] }
+
+        for (let col = 0;col < boardLength;col++) {
+            horizontalMatch.moves.push(board[row][col])
+            horizontalMatch.coordinates.push([row, col])
+
+            verticalMatch.moves.push(board[col][row])
+            verticalMatch.coordinates.push([col, row])
+
+            flattenBoard.push(board[row][col])
+        }
+
+        for (let rev = boardLength - 1;rev >= 0;rev--) {
+            diagonalMatch.moves.push(board[rev][rev])
+            diagonalMatch.coordinates.push([rev, rev])
+
+            diagonalReverseMatch.moves.push(board[(boardLength - 1) - rev][rev])
+            diagonalReverseMatch.coordinates.push([(boardLength - 1) - rev, rev])
+        }
+
+        const matches = [
+            horizontalMatch,
+            verticalMatch,
+            diagonalMatch,
+            diagonalReverseMatch
+        ]
+
+        for (const match of matches) {
+            const { moves, coordinates } = match
+
+            const firstMove = moves[0]
+            const hasWinningPattern = firstMove !== PLAYER.Blank && moves.every(player => player === firstMove)
+            if (hasWinningPattern) {
+                win.winner = firstMove
+                win.winningCoordinates = coordinates
+            }
+        }
+    }
+
+    if (win.winner !== undefined) return win
+    if (flattenBoard.every(move => move !== PLAYER.Blank)) {
+        win.winner = PLAYER.Blank
+        return win
+    }
+
+    return undefined
+}
+
+
+/********************/
+/* PLAYER FUNCTIONS */
+/********************/
 
 const makeMove = (box, player, options = {}) => {
     const { delayMs } = options
@@ -198,67 +264,6 @@ const checkWinner = (board) => {
     }
 
     if (winner) return winner
-
-    return undefined
-}
-
-export const checkWinnerWithCoordinates = (board) => {
-    const boardLength = board.length
-    const flattenBoard = []
-    const win = {
-        winner: undefined,
-        winningCoordinates: undefined
-    }
-    let winner, winningCoordinates
-
-    for (let row = 0;row < boardLength;row++) {
-        const horizontalMatch = { moves: [], coordinates: [] }
-        const verticalMatch = { moves: [], coordinates: [] }
-        const diagonalMatch = { moves: [], coordinates: [] }
-        const diagonalReverseMatch = { moves: [], coordinates: [] }
-
-        for (let col = 0;col < boardLength;col++) {
-            horizontalMatch.moves.push(board[row][col])
-            horizontalMatch.coordinates.push([row, col])
-
-            verticalMatch.moves.push(board[col][row])
-            verticalMatch.coordinates.push([col, row])
-
-            flattenBoard.push(board[row][col])
-        }
-
-        for (let rev = boardLength - 1;rev >= 0;rev--) {
-            diagonalMatch.moves.push(board[rev][rev])
-            diagonalMatch.coordinates.push([rev, rev])
-
-            diagonalReverseMatch.moves.push(board[(boardLength - 1) - rev][rev])
-            diagonalReverseMatch.coordinates.push([(boardLength - 1) - rev, rev])
-        }
-
-        const matches = [
-            horizontalMatch,
-            verticalMatch,
-            diagonalMatch,
-            diagonalReverseMatch
-        ]
-
-        for (const match of matches) {
-            const { moves, coordinates } = match
-
-            const firstMove = moves[0]
-            const hasWinningPattern = firstMove !== PLAYER.Blank && moves.every(player => player === firstMove)
-            if (hasWinningPattern) {
-                win.winner = firstMove
-                win.winningCoordinates = coordinates
-            }
-        }
-    }
-
-    if (win.winner !== undefined) return win
-    if (flattenBoard.every(move => move !== PLAYER.Blank)) {
-        win.winner = PLAYER.Blank
-        return win
-    }
 
     return undefined
 }
