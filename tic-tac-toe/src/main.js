@@ -81,7 +81,7 @@ const handleBoxClick = (event, game) => {
     game.history.push(cloneBoard(game.board))
 
     winner = checkWinnerWithCoordinates(game.board)
-    if (winner) return handleAfterGame(winner)
+    if (winner) return handleDeclareWinner(winner)
 
     const [rowAI, colAI] = makeComputerMove(game)
 
@@ -90,10 +90,10 @@ const handleBoxClick = (event, game) => {
     game.history.push(cloneBoard(game.board))
 
     winner = checkWinnerWithCoordinates(game.board)
-    if (winner) return setTimeout(() => { handleAfterGame(winner) }, 600)
+    if (winner) return setTimeout(() => { handleDeclareWinner(winner) }, 600)
 }
 
-const handleAfterGame = (gameState) => {
+const handleDeclareWinner = (gameState) => {
     const historyControls = document.querySelector('.history-controls')
     historyControls.classList.remove('hide')
 
