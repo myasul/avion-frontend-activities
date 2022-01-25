@@ -129,7 +129,7 @@ export const makeComputerMove = (game) => {
     const box = document.querySelector(`div.row-${row + 1} div.col-${col + 1}`)
 
     // Add delay to have that "thinking" effect
-    makeMove(box, PLAYER.O, { delayMs: 400 })
+    makeMove(box, PLAYER.O, { delayMs: 300 })
 
     return move
 }

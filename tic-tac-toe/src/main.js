@@ -90,7 +90,7 @@ const handleBoxClick = (event, game) => {
     game.history.push(cloneBoard(game.board))
 
     winner = checkWinnerWithCoordinates(game.board)
-    if (winner) return handleAfterGame(winner)
+    if (winner) return setTimeout(() => { handleAfterGame(winner) }, 600)
 }
 
 const handleAfterGame = (gameState) => {
