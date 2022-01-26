@@ -25,7 +25,7 @@ export const startGame = (difficulty) => {
         difficulty
     }
 
-    drawBoard(game.board)
+    drawBoard(game.board, { enableBoxes: true })
 
     // Add event listeners
     document
@@ -49,18 +49,17 @@ export const startGame = (difficulty) => {
 }
 
 const restartGame = (difficulty) => {
-    // Remove current event listeners to avoid overlap
     const oldBoard = document.querySelector('.board')
+    // Remove current event listeners to avoid overlap.
+    // Reference: https://stackoverflow.com/a/9251864
     recreateElement(oldBoard)
 
-    const oldHistoryControls = document.querySelector('.history-controls')
-    const historyControls = recreateElement(oldHistoryControls)
+    const historyControls = document.querySelector('.history-controls')
     historyControls.classList.add('hide')
 
     const boxes = getBoardBoxes({ flatten: true })
     boxes.forEach(box => box.classList.remove('blink'))
 
-    drawBoard(cloneBoard(EMPTY_BOARD), { enableBoxes: true })
     startGame(difficulty)
 }
 
@@ -70,12 +69,14 @@ const restartGame = (difficulty) => {
 
 const handleBoxClick = (event, game) => {
     const box = event.target
-    let winner
 
     if (box.disabled) return
 
+    let winner
+
     const [row, col] = makeHumanMove(box)
 
+    // Update board and history for every move
     game.board[row][col] = PLAYER.X
     game.currentHistoryIndex += 1
     game.history.push(cloneBoard(game.board))
@@ -85,22 +86,26 @@ const handleBoxClick = (event, game) => {
 
     const [rowAI, colAI] = makeComputerMove(game)
 
+    // Update board and history for every move
     game.board[rowAI][colAI] = PLAYER.O
     game.currentHistoryIndex += 1
     game.history.push(cloneBoard(game.board))
 
     winner = checkWinnerWithCoordinates(game.board)
+    // If computer wins add delay to compensate
+    // for the thinking effect before the blink
+    // effect kicks in.
     if (winner) return setTimeout(() => { handleDeclareWinner(winner) }, 600)
 }
 
-const handleDeclareWinner = (gameState) => {
+const handleDeclareWinner = (winner) => {
     const historyControls = document.querySelector('.history-controls')
     historyControls.classList.remove('hide')
 
     const nextButton = document.querySelector('.next')
     nextButton.disabled = true
 
-    const { status, winningCoordinates } = gameState
+    const { winningPlayer, winningCoordinates } = winner
     const boxes = getBoardBoxes()
 
     if (winningCoordinates) {
@@ -109,6 +114,8 @@ const handleDeclareWinner = (gameState) => {
             box.classList.add('blink')
         }
     } else {
+        // If there is no winning coordinates, it is safe
+        // to assume that it is a draw.
         boxes.flat().forEach(box => box.classList.add('blink'))
     }
 
@@ -117,13 +124,16 @@ const handleDeclareWinner = (gameState) => {
 
 const handlePreviousClick = (game) => {
     const { currentHistoryIndex, history } = game
-    const index = currentHistoryIndex === 0 ? 0 : currentHistoryIndex - 1
     const historyMaxArrayLocation = history.length - 1
+
+    const index = currentHistoryIndex === 0 ? 0 : currentHistoryIndex - 1
     const board = history[index]
 
     const nextButton = document.querySelector('.next')
     const previousButton = document.querySelector('.previous')
 
+    // Disable/enable history control buttons 
+    // depending on where the index is.
     if (index === 0) previousButton.disabled = true
     if (index < historyMaxArrayLocation) nextButton.disabled = false
 
@@ -142,6 +152,8 @@ const handleNextClick = (game) => {
     const nextButton = document.querySelector('.next')
     const previousButton = document.querySelector('.previous')
 
+    // Disable/enable history control buttons 
+    // depending on where the index is.
     if (index === historyMaxArrayLocation) nextButton.disabled = true
     if (index > 0) previousButton.disabled = false
 

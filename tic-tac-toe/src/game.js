@@ -15,7 +15,10 @@ export const drawBoard = (board, options = {}) => {
             const boardValue = board[row][col]
 
             if (enableBoxes) box.setAttribute('disabled', false)
+
+            // Clear any existing image
             if (box.firstChild) box.removeChild(box.firstChild)
+
             if (boardValue === PLAYER.Blank) continue
 
             const image = new Image()
@@ -30,11 +33,11 @@ export const drawBoard = (board, options = {}) => {
 export const checkWinnerWithCoordinates = (board) => {
     const boardLength = board.length
     const flattenBoard = []
-    const win = {
-        winner: undefined,
+    const winner = {
+        winningPlayer: undefined,
         winningCoordinates: undefined
     }
-    let winner, winningCoordinates
+    let winningPlayer, winningCoordinates
 
     for (let row = 0;row < boardLength;row++) {
         const horizontalMatch = { moves: [], coordinates: [] }
@@ -73,16 +76,16 @@ export const checkWinnerWithCoordinates = (board) => {
             const firstMove = moves[0]
             const hasWinningPattern = firstMove !== PLAYER.Blank && moves.every(player => player === firstMove)
             if (hasWinningPattern) {
-                win.winner = firstMove
-                win.winningCoordinates = coordinates
+                winner.winningPlayer = firstMove
+                winner.winningCoordinates = coordinates
             }
         }
     }
 
-    if (win.winner !== undefined) return win
+    if (winner.winningPlayer !== undefined) return winner
     if (flattenBoard.every(move => move !== PLAYER.Blank)) {
-        win.winner = PLAYER.Blank
-        return win
+        winner.winningPlayer = PLAYER.Blank
+        return winner
     }
 
     return undefined
@@ -93,7 +96,7 @@ export const checkWinnerWithCoordinates = (board) => {
 /* PLAYER FUNCTIONS */
 /********************/
 
-const makeMove = (box, player, options = {}) => {
+const placeMove = (box, player, options = {}) => {
     const { delayMs } = options
 
     const image = new Image()
@@ -112,8 +115,7 @@ const makeMove = (box, player, options = {}) => {
 }
 
 export const makeHumanMove = (box) => {
-    // Recreate element to remove click event
-    const newBox = makeMove(box, PLAYER.X)
+    const newBox = placeMove(box, PLAYER.X)
 
     return getMoveLocation(newBox)
 }
@@ -129,7 +131,7 @@ export const makeComputerMove = (game) => {
     const box = document.querySelector(`div.row-${row + 1} div.col-${col + 1}`)
 
     // Add delay to have that "thinking" effect
-    makeMove(box, PLAYER.O, { delayMs: 300 })
+    placeMove(box, PLAYER.O, { delayMs: 300 })
 
     return move
 }
