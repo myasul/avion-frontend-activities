@@ -1,0 +1,62 @@
+body {
+    background-color: black;
+    color: white;
+}
+
+.banner {
+    font-family: 'Open Sans', sans-serif;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    height: 800px;
+}
+
+.banner .right {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-direction: column;
+    padding-right: 10rem;
+}
+
+.banner .right .quote {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-direction: column;
+    text-align: end;
+}
+
+.banner .right .apple-icon {
+    margin-top: 5rem;
+    display: flex;
+    justify-content: flex-end;    
+}
+
+.apple-icon img {
+    justify-self: end;
+    align-self: flex-end;
+    width: 75%;
+    height: 40px;
+}
+
+.quote h1 {
+    font-size: 50px;
+}
+.quote h3 {
+    justify-self: flex-end;
+    font-weight: 200;
+    width: 60%;
+}
+
+.banner .steve-thinking-image-wrapper {
+    width: 100%;
+}
+
+.steve-thinking-image-wrapper img {
+    margin: 0 auto;
+    height: 800px;
+    display: block;
+}

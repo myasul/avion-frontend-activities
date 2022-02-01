@@ -39,7 +39,7 @@ export const startGame = (difficulty) => {
         .addEventListener('click', () => handleNextClick(game))
     document
         .querySelector('.new-game')
-        .addEventListener('click', () => restartGame(game.difficulty))
+        .addEventListener('click', () => restartGame(difficulty))
     document
         .querySelector('.easy')
         .addEventListener('click', handleEasyGameHandler)
@@ -50,11 +50,13 @@ export const startGame = (difficulty) => {
 
 const restartGame = (difficulty) => {
     const oldBoard = document.querySelector('.board')
-    // Remove current event listeners to avoid overlap.
+    // Remove current event listeners to avoid overlap and
+    // game reference issues.
     // Reference: https://stackoverflow.com/a/9251864
     recreateElement(oldBoard)
 
-    const historyControls = document.querySelector('.history-controls')
+    const oldHistoryControls = document.querySelector('.history-controls')
+    const historyControls = recreateElement(oldHistoryControls)
     historyControls.classList.add('hide')
 
     const boxes = getBoardBoxes({ flatten: true })

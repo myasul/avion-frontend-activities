@@ -4,10 +4,6 @@ export const EMPTY_BOARD = [
     ['_', '_', '_'],
 ]
 
-// ['_', '_', '_'],
-// ['_', '_', '_'],
-// ['_', '_', '_'],
-
 export const GAME_STATUS = {
     XWin: 'Human Wins',
     OWin: 'AI Wins',
