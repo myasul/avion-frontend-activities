@@ -1,10 +1,23 @@
 body {
+    font-family: 'Open Sans', sans-serif;
     background-color: black;
+    color: white;
+    font-size: 16px;
+}
+
+.quote-font {
+    font-family: 'Quicksand', sans-serif;
+}
+
+.grey-text {
+    color: #b0b0b0;
+}
+
+.white-text {
     color: white;
 }
 
 .banner {
-    font-family: 'Open Sans', sans-serif;
     display: flex;
     justify-content: space-evenly;
     align-items: center;
@@ -21,7 +34,7 @@ body {
     padding-right: 10rem;
 }
 
-.banner .right .quote {
+.banner .right .quote-one {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
@@ -32,7 +45,7 @@ body {
 .banner .right .apple-icon {
     margin-top: 5rem;
     display: flex;
-    justify-content: flex-end;    
+    justify-content: flex-end;
 }
 
 .apple-icon img {
@@ -42,10 +55,11 @@ body {
     height: 40px;
 }
 
-.quote h1 {
+.quote-one h1 {
     font-size: 50px;
 }
-.quote h3 {
+
+.quote-one h3 {
     justify-self: flex-end;
     font-weight: 200;
     width: 60%;
@@ -59,4 +73,54 @@ body {
     margin: 0 auto;
     height: 800px;
     display: block;
+}
+
+.quote-two {
+    font-family: 'Quicksand', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    width: 80%;
+    margin: 120px auto;
+}
+
+.quote-two h1 {
+    font-size: 60px;
+    text-align: center;
+}
+
+.apple-one,
+.apple-two {
+    width: 75%;
+    display: flex;
+    justify-content: space-around;
+    gap: 5rem;
+    align-items: center;
+    padding: 0 20px 100px 20px;
+    margin: 0 auto;
+}
+
+.apple-one > *,
+.apple-two > * {
+    line-height: 1.5rem;
+}
+
+.apple-one > img,
+.apple-two > img {
+    width: 35%;
+    align-self: flex-start;
+}
+
+.apple-one .description-wrapper,
+.apple-two .description-wrapper {
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    gap: 10rem;
+}
+
+.apple-one .description-wrapper img,
+.apple-two .description-wrapper img {
+    width: 100%;
 }
