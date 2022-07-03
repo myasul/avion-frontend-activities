@@ -1,4 +1,4 @@
-import { EMPTY_BOARD } from './constants'
+import { EMPTY_BOARD } from './constants.js'
 
 export const cloneBoard = (board) => board.map(row => [...row])
 export const getRandomArbitrary = (min, max) => Math.round(Math.random() * (max - min) + min)
